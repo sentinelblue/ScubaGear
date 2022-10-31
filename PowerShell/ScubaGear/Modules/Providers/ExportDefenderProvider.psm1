@@ -1,4 +1,4 @@
-function Export-DefenderProvider {
+function Export-DefenderProvider($CloudEnvironment) {
     <#
     .Description
     Gets the Microsoft 365 Defender settings that are relevant
@@ -10,17 +10,27 @@ function Export-DefenderProvider {
     # Sign in for the Defender Provider if not connected
     $ExchangeConnected = Get-OrganizationConfig -ErrorAction SilentlyContinue
     if(-not $ExchangeConnected) {
-        Connect-ExchangeOnline -ShowBanner:$false | Out-Null
+        switch ($CloudEnvironment) {
+            USGovHigh {
+                Connect-ExchangeOnline -ShowBanner:$false -ExchangeEnvironmentName O365USGovGCCHigh | Out-Null
+            }
+            Global {
+                Connect-ExchangeOnline -ShowBanner:$false | Out-Null
+             }
+            Default {
+                Write-Error "'Connect-ExchangeOnline' has no connector for $CloudEnvironment."
+            }
+        }
     }
     Import-Module ExchangeOnlineManagement
 
     # Regular Exchange i.e non IPPSSession cmdlets
-    $AdminAuditLogConfig = Get-AdminAuditLogConfig | ConvertTo-Json
-    $ProtectionPolicyRule = ConvertTo-Json @(Get-EOPProtectionPolicyRule)
-    $MalwareFilterPolicy = ConvertTo-Json @(Get-MalwareFilterPolicy)
-    $AntiPhishPolicy = ConvertTo-Json @(Get-AntiPhishPolicy)
+    $AdminAuditLogConfig       = Get-AdminAuditLogConfig | ConvertTo-Json
+    $ProtectionPolicyRule      = ConvertTo-Json @(Get-EOPProtectionPolicyRule)
+    $MalwareFilterPolicy       = ConvertTo-Json @(Get-MalwareFilterPolicy)
+    $AntiPhishPolicy           = ConvertTo-Json @(Get-AntiPhishPolicy)
     $HostedContentFilterPolicy = ConvertTo-Json @(Get-HostedContentFilterPolicy)
-    $AllDomains = Get-AcceptedDomain | ConvertTo-Json
+    $AllDomains                = Get-AcceptedDomain | ConvertTo-Json
 
     # Test if Defender specific commands are available. If the tenant does
     # not have a defender license (plan 1 or plan 2), the following
@@ -29,11 +39,11 @@ function Export-DefenderProvider {
     # so we can test for this using Get-Command.
     if (Get-Command Get-SafeAttachmentPolicy -errorAction SilentlyContinue) {
         $SafeAttachmentPolicy = ConvertTo-Json @(Get-SafeAttachmentPolicy)
-        $SafeAttachmentRule = ConvertTo-Json @(Get-SafeAttachmentRule)
-        $SafeLinksPolicy = ConvertTo-Json @(Get-SafeLinksPolicy)
-        $SafeLinksRule = ConvertTo-Json @(Get-SafeLinksRule)
-        $ATPPolicy = ConvertTo-Json @(Get-AtpPolicyForO365)
-        $DefenderLicense = ConvertTo-Json $true
+        $SafeAttachmentRule   = ConvertTo-Json @(Get-SafeAttachmentRule)
+        $SafeLinksPolicy      = ConvertTo-Json @(Get-SafeLinksPolicy)
+        $SafeLinksRule        = ConvertTo-Json @(Get-SafeLinksRule)
+        $ATPPolicy            = ConvertTo-Json @(Get-AtpPolicyForO365)
+        $DefenderLicense      = ConvertTo-Json $true
     }
     else {
         # The tenant can't make use of the defender commands
@@ -48,11 +58,21 @@ function Export-DefenderProvider {
     $AllDomains = ConvertTo-Json @(Get-AcceptedDomain)
 
     # Connect to Security & Compliance
-    Connect-IPPSSession | Out-Null
+    switch ($CloudEnvironment) {
+        USGovHigh {
+            Connect-IPPSSession  -ConnectionUri 'https://ps.compliance.protection.office365.us/powershell-liveid/'
+        }
+        Global {
+            Connect-IPPSSession | Out-Null
+         }
+        Default {
+            Write-Error "'Connect-IPPSSession' has no connector for $CloudEnvironment."
+        }
+    }
 
     $DLPCompliancePolicy = ConvertTo-Json @(Get-DlpCompliancePolicy)
-    $DLPComplianceRules =  @(Get-DlpComplianceRule)
-    $ProtectionAlert = Get-ProtectionAlert | ConvertTo-Json
+    $DLPComplianceRules  = @(Get-DlpComplianceRule)
+    $ProtectionAlert     = Get-ProtectionAlert | ConvertTo-Json
 
     # Powershell is inconsistent with how they save lists to json.
     # This loop ensures that the format of ContentContainsSensitiveInformation

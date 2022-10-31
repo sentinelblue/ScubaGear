@@ -8,11 +8,11 @@ function Export-TeamsProvider {
     #>
     [CmdletBinding()]
 
-    $TenantInfo = ConvertTo-Json @(Get-CsTenant)
-    $MeetingPolicies = ConvertTo-Json @(Get-CsTeamsMeetingPolicy)
-    $FedConfig = ConvertTo-Json @(Get-CsTenantFederationConfiguration)
-    $ClientConfig = ConvertTo-Json @(Get-CsTeamsClientConfiguration)
-    $AppPolicies = ConvertTo-Json @(Get-CsTeamsAppPermissionPolicy)
+    $TenantInfo        = ConvertTo-Json @(Get-CsTenant)
+    $MeetingPolicies   = ConvertTo-Json @(Get-CsTeamsMeetingPolicy)
+    $FedConfig         = ConvertTo-Json @(Get-CsTenantFederationConfiguration)
+    $ClientConfig      = ConvertTo-Json @(Get-CsTeamsClientConfiguration)
+    $AppPolicies       = ConvertTo-Json @(Get-CsTeamsAppPermissionPolicy)
     $BroadcastPolicies = ConvertTo-Json @(Get-CsTeamsMeetingBroadcastPolicy)
 
     # Note the spacing and the last comma in the json is important
@@ -43,10 +43,10 @@ function Get-TeamsTenantDetail {
 
     # Need to explicitly clear or convert these values to strings, otherwise
     # these fields contain values Rego can't parse.
-    $TenantInfo.AssignedPlan = @()
+    $TenantInfo.AssignedPlan      = @()
     $TenantInfo.LastSyncTimeStamp = $TenantInfo.LastSyncTimeStamp.ToString()
-    $TenantInfo.WhenChanged = $TenantInfo.WhenChanged.ToString()
-    $TenantInfo.WhenCreated = $TenantInfo.WhenCreated.ToString()
-    $TenantInfo = ConvertTo-Json @($TenantInfo) -Depth 4
+    $TenantInfo.WhenChanged       = $TenantInfo.WhenChanged.ToString()
+    $TenantInfo.WhenCreated       = $TenantInfo.WhenCreated.ToString()
+    $TenantInfo                   = ConvertTo-Json @($TenantInfo) -Depth 4
     $TenantInfo
 }
