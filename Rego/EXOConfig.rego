@@ -36,6 +36,7 @@ AllDomains := {Domain.domain | Domain = input.spf_records[_]}
 CustomDomains[Domain.domain] {
     Domain = input.spf_records[_]
     not endswith( Domain.domain, "onmicrosoft.com")
+    not endswith( Domain.domain, "onmicrosoft.us")
 }
 
 

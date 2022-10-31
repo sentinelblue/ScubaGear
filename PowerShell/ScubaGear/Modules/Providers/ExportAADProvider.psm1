@@ -85,9 +85,9 @@ function Get-AADTenantDetail {
     .Functionality
     Internal
     #>
-    $TenantInfo = @{}
+    $TenantInfo             = @{}
     $TenantInfo.DisplayName = $(Get-MgOrganization).DisplayName
-    $TenantInfo = $TenantInfo | ConvertTo-Json -Depth 4
+    $TenantInfo             = $TenantInfo | ConvertTo-Json -Depth 4
     $TenantInfo
 }
 

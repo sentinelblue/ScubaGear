@@ -1,4 +1,4 @@
-function Export-OneDriveProvider {
+function Export-OneDriveProvider($Environment) {
     <#
     .Description
     Gets the OneDrive settings that are relevant
@@ -10,7 +10,18 @@ function Export-OneDriveProvider {
     $InitialDomain = (Get-MgOrganization).VerifiedDomains | Where-Object {$_.isInitial}
     $InitialDomainPrefix = $InitialDomain.Name.split(".")[0]
     $SPOTenantInfo = Get-SPOTenant | ConvertTo-Json
-    $ExpectedResults = Get-SPOSite -Identity "https://$($InitialDomainPrefix).sharepoint.com/"  | ConvertTo-Json
+    switch ($Environment) {
+        USGov {
+            $ExpectedResults = Get-SPOSite -Identity "https://$($InitialDomainPrefix).sharepoint.us/"  | ConvertTo-Json
+        }
+        Global {
+            $ExpectedResults = Get-SPOSite -Identity "https://$($InitialDomainPrefix).sharepoint.com/"  | ConvertTo-Json
+         }
+        Default {
+            Write-Error "'$Environment' has no connector for $Product."
+        }
+    }
+
     $TenantSyncInfo = Get-SPOTenantSyncClientRestriction | ConvertTo-Json
 
     # Note the spacing and the last comma in the json is important

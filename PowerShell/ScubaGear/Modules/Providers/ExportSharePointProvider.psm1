@@ -1,4 +1,4 @@
-function Export-SharePointProvider {
+function Export-SharePointProvider($Environment) {
     <#
     .Description
     Gets the SharePoint settings that are relevant
@@ -10,7 +10,19 @@ function Export-SharePointProvider {
     $InitialDomain = (Get-MgOrganization).VerifiedDomains | Where-Object {$_.isInitial}
     $InitialDomainPrefix = $InitialDomain.Name.split(".")[0]
     $SPOTenant = Get-SPOTenant | ConvertTo-Json
-    $SPOSite = Get-SPOSite -Identity "https://$($InitialDomainPrefix).sharepoint.com/" -detailed | Select-Object -Property * | ConvertTo-Json
+
+    switch ($Environment) {
+        USGov {
+            $SPOSite = Get-SPOSite -Identity "https://$($InitialDomainPrefix).sharepoint.us/" -detailed | Select-Object -Property * | ConvertTo-Json
+        }
+        Global {
+            $SPOSite = Get-SPOSite -Identity "https://$($InitialDomainPrefix).sharepoint.com/" -detailed | Select-Object -Property * | ConvertTo-Json
+         }
+        Default {
+            Write-Error "'$Environment' has no connector for $Product."
+        }
+    }
+    
 
     # Note the spacing and the last comma in the json is important
     $json = @"

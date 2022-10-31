@@ -8,18 +8,20 @@ param (
     $Version
 )
 
-$LogIn = $true # Set $true to authenticate yourself to a tenant or if you are already authenticated set to $false to avoid reauthentication
+$LogIn        = $true # Set $true to authenticate yourself to a tenant or if you are already authenticated set to $false to avoid reauthentication
 $ProductNames = @("aad", "defender", "exo", "onedrive", "sharepoint", "teams") # The specific products that you want the tool to assess.
-$Endpoint = "usgov" # Mandatory parameter if running Power Platform. Valid options are "dod", "prod","preview","tip1", "tip2", "usgov", or "usgovhigh".
-$OutPath = "./Reports" # Report output directory path. Leave as-is if you want the Reports folder to be created in the same directory where the script is executed.
-$OPAPath = "./" # Path to the OPA Executable. Leave this as-is for most cases.
+$Endpoint     = "usgov" # Mandatory parameter if running Power Platform. Valid options are "dod", "prod", "preview", "tip1", "tip2", "usgov", or "usgovhigh".
+$OutPath      = "./Reports" # Report output directory path. Leave as-is if you want the Reports folder to be created in the same directory where the script is executed.
+$OPAPath      = "./" # Path to the OPA Executable. Leave this as-is for most cases.
+$Environment  = "USGov"
 
 $SCuBAParams = @{
-    'Login' = $Login;
+    'Login'        = $Login;
     'ProductNames' = $ProductNames;
-    'Endpoint' = $Endpoint;
-    'OPAPath' = $OPAPath;
-    'OutPath' = $OutPath;
+    'Endpoint'     = $Endpoint;
+    'OPAPath'      = $OPAPath;
+    'OutPath'      = $OutPath;
+    'Environment'  = $Environment;
 }
 
 $ManifestPath = Join-Path -Path "./PowerShell" -ChildPath "ScubaGear"
@@ -29,7 +31,7 @@ if ($Version) {
     Invoke-SCuBA @SCuBAParams -Version
 }
 else {
-    Invoke-SCuBA @SCuBAParams
+    Invoke-SCuBA @SCuBAParams -Verbose
 }
 Remove-Module "ScubaGear" -ErrorAction "SilentlyContinue"
 #######

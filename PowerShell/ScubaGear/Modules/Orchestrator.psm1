@@ -11,12 +11,15 @@ function Invoke-SCuBA {
     Path to the OPA executuable
     .Parameter LogIn
     Set $true to authenticate yourself to a tenant or if you are already authenticated set to $false
+    .Parameter Environment
+    Set the cloud environment UsGov (Azure Government & GCC High) or default (Global aka Commercial)
     .Example
     Invoke-SCuBA -LogIn $True -ProductNames @("teams", "exo", "defender", "aad", "powerplatform", "sharepoint", "onedrive")  -Endpoint "usgov" -OPAPath "./"  -OutPath output
     .Example
     Invoke-SCuBA -LogIn $False -ProductNames @("powerplatform", "exo")  -Endpoint "prod" -OPAPath "./"  -OutPath "/Reports"
     .Functionality
     Public
+    
     #>
     [CmdletBinding()]
     param (
@@ -39,7 +42,12 @@ function Invoke-SCuBA {
         $Version,
 
         [string]
-        $OutPath = $PSScriptRoot
+        $OutPath = $PSScriptRoot,
+
+        #Set the M365 Cloud Environment
+        [ValidateSet("Global", "USGov")]
+        [string]
+        $Environment="Global"
         )
         process {
             # The equivalent of ..\..
@@ -66,9 +74,10 @@ function Invoke-SCuBA {
             $ProductNames = $ProductNames | Sort-Object
 
             $ConnectionParams = @{
-                'LogIn' = $LogIn;
+                'LogIn'        = $LogIn;
                 'ProductNames' = $ProductNames;
-                'Endpoint' = $Endpoint;
+                'Endpoint'     = $Endpoint;
+                'Environment'  = $Environment;
             }
 
             # If a PowerShell module  is updated, the changes
@@ -80,21 +89,22 @@ function Invoke-SCuBA {
 
             $TenantDetails = Get-TenantDetails -ProductNames $ProductNames
             $ProviderParams = @{
-                'ProductNames' = $ProductNames;
+                'ProductNames'  = $ProductNames;
                 'TenantDetails' = $TenantDetails;
                 'OutFolderPath' = $OutFolderPath;
+                'Environment'   = $Environment;
             }
             $RegoParams = @{
-                'ProductNames' = $ProductNames;
-                'OPAPath' = $OPAPath;
-                'ParentPath' = $ParentPath;
+                'ProductNames'  = $ProductNames;
+                'OPAPath'       = $OPAPath;
+                'ParentPath'    = $ParentPath;
                 'OutFolderPath' = $OutFolderPath;
             }
             $DisplayName = $TenantDetails | ConvertFrom-Json
             $DisplayName = $DisplayName.DisplayName
             $ReportParams = @{
-                'ProductNames' = $ProductNames;
-                'DisplayName' = $DisplayName
+                'ProductNames'  = $ProductNames;
+                'DisplayName'   = $DisplayName
                 'OutFolderPath' = $OutFolderPath;
             }
             Invoke-ProviderList @ProviderParams
@@ -104,13 +114,13 @@ function Invoke-SCuBA {
     }
 
 $ArgToProd = @{
-    teams = "Teams";
-    exo = "EXO";
-    defender = "Defender";
-    aad = "AAD";
+    teams         = "Teams";
+    exo           = "EXO";
+    defender      = "Defender";
+    aad           = "AAD";
     powerplatform = "PowerPlatform";
-    sharepoint = "SharePoint";
-    onedrive = "OneDrive";
+    sharepoint    = "SharePoint";
+    onedrive      = "OneDrive";
 }
 
 function Invoke-ProviderList {
@@ -133,7 +143,12 @@ function Invoke-ProviderList {
 
         [Parameter(Mandatory=$true)]
         [string]
-        $OutFolderPath
+        $OutFolderPath,
+
+        #Set the M365 Cloud Environment
+        [ValidateSet("Global", "USGov")]
+        [string]
+        $Environment="Global"
     )
     process {
         # yes the syntax has to be like this
@@ -157,16 +172,16 @@ function Invoke-ProviderList {
                     $RetVal = Export-EXOProvider | Select-Object -Last 1
                 }
                 "defender" {
-                    $RetVal = Export-DefenderProvider | Select-Object -Last 1
+                    $RetVal = Export-DefenderProvider -Environment $Environment | Select-Object -Last 1
                 }
                 "powerplatform"{
                     $RetVal = Export-PowerPlatformProvider | Select-Object -Last 1
                 }
                 "onedrive"{
-                    $RetVal = Export-OneDriveProvider | Select-Object -Last 1
+                    $RetVal = Export-OneDriveProvider -Environment $Environment | Select-Object -Last 1
                 }
                 "sharepoint"{
-                    $RetVal = Export-SharePointProvider | Select-Object -Last 1
+                    $RetVal = Export-SharePointProvider -Environment $Environment | Select-Object -Last 1
                 }
                 "teams" {
                     $RetVal = Export-TeamsProvider | Select-Object -Last 1
@@ -487,13 +502,18 @@ function Invoke-Connection {
         $ProductNames,
 
         [string]
-        $Endpoint
+        $Endpoint,
+
+        #Set the M365 Cloud Environment
+        [ValidateSet("Global", "USGov")]
+        [string]
+        $Environment="Global"
     )
     if ($LogIn) {
         $ConnectionPath = Join-Path -Path $PSScriptRoot -ChildPath "Connection"
         Remove-Module "Connection" -ErrorAction "SilentlyContinue"
         Import-Module $ConnectionPath
-        Connect-Tenant -ProductNames $ProductNames -Endpoint $Endpoint
+        Connect-Tenant -ProductNames $ProductNames -Endpoint $Endpoint -Environment $Environment
     }
 }
 
@@ -582,7 +602,12 @@ function Invoke-RunCached {
 
         # The destination folder for the output.
         [string]
-        $OutPath = $PSScriptRoot
+        $OutPath = $PSScriptRoot,
+
+        #Cloud environment
+        [ValidateSet("Global", "USGov")]
+        [string]
+        $Environment="Global"
         )
         process {
             # The equivalent of ..\..
@@ -597,6 +622,7 @@ function Invoke-RunCached {
                 'LogIn' = $LogIn;
                 'ProductNames' = $ProductNames;
                 'Endpoint' = $Endpoint;
+                'Environment' = $Environment;
             }
 
             #Rego Testing
@@ -604,22 +630,23 @@ function Invoke-RunCached {
             $TenantDetails = $TenantDetails | ConvertTo-Json -Depth 3
 
             $ProviderParams = @{
-                'ProductNames' = $ProductNames;
+                'ProductNames'  = $ProductNames;
                 'TenantDetails' = $TenantDetails;
                 'OutFolderPath' = $OutFolderPath;
+                'Environment'   = $Environment
             }
             $RegoParams = @{
-                'ProductNames' = $ProductNames;
-                'OPAPath' = $OPAPath;
-                'ParentPath' = $ParentPath;
+                'ProductNames'  = $ProductNames;
+                'OPAPath'       = $OPAPath;
+                'ParentPath'    = $ParentPath;
                 'OutFolderPath' = $OutFolderPath;
             }
 
             $DisplayName = $TenantDetails | ConvertFrom-Json
             $DisplayName = $DisplayName.DisplayName
             $ReportParams = @{
-                'ProductNames' = $ProductNames;
-                'DisplayName' = $DisplayName
+                'ProductNames'  = $ProductNames;
+                'DisplayName'   = $DisplayName
                 'OutFolderPath' = $OutFolderPath;
             }
 
