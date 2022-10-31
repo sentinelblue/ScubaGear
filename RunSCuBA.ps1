@@ -8,6 +8,24 @@ param (
     $Version
 )
 
+<# Defaults for Commercial or "Global" Azure/Office 365
+$LogIn        = $true
+$ProductNames = @("aad", "defender", "exo", "onedrive", "sharepoint", "teams")
+$Endpoint     = "usgovhigh"
+$OutPath      = "./Reports"
+$OPAPath      = "./"
+$Environment  = "Global"
+#>
+
+<# Defaults for Azure Government/GCC High
+$LogIn        = $true
+$ProductNames = @("aad", "defender", "exo", "onedrive", "sharepoint", "teams")
+$Endpoint     = "usgovhigh"
+$OutPath      = "./Reports"
+$OPAPath      = "./"
+$Environment  = "USGov"
+#>
+
 $LogIn        = $true # Set $true to authenticate yourself to a tenant or if you are already authenticated set to $false to avoid reauthentication
 $ProductNames = @("aad", "defender", "exo", "onedrive", "sharepoint", "teams") # The specific products that you want the tool to assess.
 $Endpoint     = "usgovhigh" # Mandatory parameter if running Power Platform. Valid options are "dod", "prod", "preview", "tip1", "tip2", "usgov", or "usgovhigh".
