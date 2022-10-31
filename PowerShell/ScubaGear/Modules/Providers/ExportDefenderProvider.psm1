@@ -1,4 +1,4 @@
-function Export-DefenderProvider($Environment) {
+function Export-DefenderProvider($CloudEnvironment) {
     <#
     .Description
     Gets the Microsoft 365 Defender settings that are relevant
@@ -10,15 +10,15 @@ function Export-DefenderProvider($Environment) {
     # Sign in for the Defender Provider if not connected
     $ExchangeConnected = Get-OrganizationConfig -ErrorAction SilentlyContinue
     if(-not $ExchangeConnected) {
-        switch ($Environment) {
-            USGov {
+        switch ($CloudEnvironment) {
+            USGovHigh {
                 Connect-ExchangeOnline -ShowBanner:$false -ExchangeEnvironmentName O365USGovGCCHigh | Out-Null
             }
             Global {
                 Connect-ExchangeOnline -ShowBanner:$false | Out-Null
              }
             Default {
-                Write-Error "'Connect-ExchangeOnline' has no connector for $Environment."
+                Write-Error "'Connect-ExchangeOnline' has no connector for $CloudEnvironment."
             }
         }
     }
@@ -58,15 +58,15 @@ function Export-DefenderProvider($Environment) {
     $AllDomains = ConvertTo-Json @(Get-AcceptedDomain)
 
     # Connect to Security & Compliance
-    switch ($Environment) {
-        USGov {
+    switch ($CloudEnvironment) {
+        USGovHigh {
             Connect-IPPSSession  -ConnectionUri 'https://ps.compliance.protection.office365.us/powershell-liveid/'
         }
         Global {
             Connect-IPPSSession | Out-Null
          }
         Default {
-            Write-Error "'Connect-IPPSSession' has no connector for $Environment."
+            Write-Error "'Connect-IPPSSession' has no connector for $CloudEnvironment."
         }
     }
 

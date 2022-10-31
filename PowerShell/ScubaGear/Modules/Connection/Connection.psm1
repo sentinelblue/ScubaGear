@@ -16,9 +16,9 @@ function Connect-Tenant {
     $Endpoint,
 
     #Set the M365 Cloud Environment
-    [ValidateSet("Global", "USGov")]
+    [ValidateSet("Global", "USGovHigh")]
     [string]
-    $Environment="Global"
+    $CloudEnvironment="Global"
     )
 
     # Prevent duplicate sign ins
@@ -36,15 +36,15 @@ function Connect-Tenant {
         switch ($Product) {
             {($_ -eq "exo") -or ($_ -eq "defender")} {
                 if ($EXOAuthRequired) {
-                    switch ($Environment) {
-                        USGov {
+                    switch ($CloudEnvironment) {
+                        USGovHigh {
                             Connect-ExchangeOnline -ShowBanner:$false -ExchangeEnvironmentName O365USGovGCCHigh | Out-Null
                         }
                         Global {
                             Connect-ExchangeOnline -ShowBanner:$false | Out-Null
                          }
                         Default {
-                            Write-Error "'$Environment' has no connector for $Product."
+                            Write-Error "'$CloudEnvironment' has no connector for $Product."
                         }
                     }
                     Write-Verbose "Defender will require a sign in every single run regardless of what the LogIn parameter is set"
@@ -62,15 +62,15 @@ function Connect-Tenant {
                     'UserAuthenticationMethod.Read.All',
                     'Policy.ReadWrite.AuthenticationMethod'
                 )
-                switch ($Environment) {
-                    USGov {
+                switch ($CloudEnvironment) {
+                    USGovHigh {
                         Connect-MgGraph -Environment UsGov -Scopes $scopes -ErrorAction Stop | Out-Null
                     }
                     Global {
                         Connect-MgGraph -Scopes $scopes -ErrorAction Stop | Out-Null
                      }
                     Default {
-                        Write-Error "'$Environment' has no connector for $Product."
+                        Write-Error "'$CloudEnvironment' has no connector for $Product."
                     }
                 }
                 Select-MgProfile Beta | Out-Null
@@ -81,30 +81,20 @@ function Connect-Tenant {
                     Write-Output "Power Platform needs an endpoint please specify one as a script arg"
                 }
                 else {
-                    switch ($Environment) {
-                        USGov {
-                            Add-PowerAppsAccount -Endpoint $Endpoint -Endpoint "usgov"  | Out-Null
-                        }
-                        Global {
-                            Add-PowerAppsAccount -Endpoint $Endpoint | Out-Null
-                         }
-                        Default {
-                            Write-Error "'$Environment' has no connector for $Product."
-                        }
-                    }
+                    Add-PowerAppsAccount -Endpoint $Endpoint | Out-Null
                 }
             }
             {($_ -eq "onedrive") -or ($_ -eq "sharepoint")} {
                 if ($AADAuthRequired) {
-                    switch ($Environment) {
-                        USGov {
+                    switch ($CloudEnvironment) {
+                        USGovHigh {
                             Connect-MgGraph  -Environment UsGov | Out-Null
                         }
                         Global {
                             Connect-MgGraph | Out-Null
                         }
                         Default {
-                            Write-Error "'$Environment' has no connector for $Product."
+                            Write-Error "'$CloudEnvironment' has no connector for $Product."
                         }
                     }
                     Select-MgProfile Beta | Out-Null
@@ -113,30 +103,30 @@ function Connect-Tenant {
                 if ($SPOAuthRequired) {
                     $InitialDomain = (Get-MgOrganization).VerifiedDomains | Where-Object {$_.isInitial}
                     $InitialDomainPrefix = $InitialDomain.Name.split(".")[0]
-                    switch ($Environment) {
-                        USGov {
+                    switch ($CloudEnvironment) {
+                        USGovHigh {
                             Connect-SPOService -Url "https://$($InitialDomainPrefix)-admin.sharepoint.us" -Region ITAR | Out-Null
                         }
                         Global {
                             Connect-SPOService -Url "https://$($InitialDomainPrefix)-admin.sharepoint.com" | Out-Null
                          }
                         Default {
-                            Write-Error "'$Environment' has no connector for $Product."
+                            Write-Error "'$CloudEnvironment' has no connector for $Product."
                         }
                     }
                     $SPOAuthRequired = $false
                 }
             }
             "teams" {
-                switch ($Environment) {
-                    USGov {
+                switch ($CloudEnvironment) {
+                    USGovHigh {
                         Connect-MicrosoftTeams -TeamsEnvironmentName TeamsGCCH | Out-Null
                     }
                     Global {
                         Connect-MicrosoftTeams | Out-Null
                      }
                     Default {
-                        Write-Error "'$Environment' has no connector for $Product."
+                        Write-Error "'$CloudEnvironment' has no connector for $Product."
                     }
                 }
             }

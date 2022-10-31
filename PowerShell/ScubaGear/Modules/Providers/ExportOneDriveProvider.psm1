@@ -1,4 +1,4 @@
-function Export-OneDriveProvider($Environment) {
+function Export-OneDriveProvider($CloudEnvironment) {
     <#
     .Description
     Gets the OneDrive settings that are relevant
@@ -10,15 +10,15 @@ function Export-OneDriveProvider($Environment) {
     $InitialDomain = (Get-MgOrganization).VerifiedDomains | Where-Object {$_.isInitial}
     $InitialDomainPrefix = $InitialDomain.Name.split(".")[0]
     $SPOTenantInfo = Get-SPOTenant | ConvertTo-Json
-    switch ($Environment) {
-        USGov {
+    switch ($CloudEnvironment) {
+        USGovHigh {
             $ExpectedResults = Get-SPOSite -Identity "https://$($InitialDomainPrefix).sharepoint.us/"  | ConvertTo-Json
         }
         Global {
             $ExpectedResults = Get-SPOSite -Identity "https://$($InitialDomainPrefix).sharepoint.com/"  | ConvertTo-Json
          }
         Default {
-            Write-Error "'$Environment' has no connector for $Product."
+            Write-Error "'$CloudEnvironment' has no connector for $Product."
         }
     }
 

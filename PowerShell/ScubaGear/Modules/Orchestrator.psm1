@@ -11,12 +11,14 @@ function Invoke-SCuBA {
     Path to the OPA executuable
     .Parameter LogIn
     Set $true to authenticate yourself to a tenant or if you are already authenticated set to $false
-    .Parameter Environment
-    Set the cloud environment UsGov (Azure Government & GCC High) or default (Global aka Commercial)
+    .Parameter CloudEnvironment
+    Set the cloud CloudEnvironment USGovHigh (Azure Government & GCC High) or default (Global aka Commercial)
     .Example
-    Invoke-SCuBA -LogIn $True -ProductNames @("teams", "exo", "defender", "aad", "powerplatform", "sharepoint", "onedrive")  -Endpoint "usgov" -OPAPath "./"  -OutPath output
+    Invoke-SCuBA -LogIn $True -ProductNames @("teams", "exo", "defender", "aad", "powerplatform", "sharepoint", "onedrive")  -Endpoint "usgov" -OPAPath "./"  -OutPath output -CloudEnvironment "Global"
     .Example
     Invoke-SCuBA -LogIn $False -ProductNames @("powerplatform", "exo")  -Endpoint "prod" -OPAPath "./"  -OutPath "/Reports"
+    .Example
+    Invoke-SCuBA -LogIn $False -ProductNames @("powerplatform", "exo")  -Endpoint "usgovhigh" -OPAPath "./"  -OutPath "/Reports" -CloudEnvironment "USGovHigh"
     .Functionality
     Public
     
@@ -45,9 +47,9 @@ function Invoke-SCuBA {
         $OutPath = $PSScriptRoot,
 
         #Set the M365 Cloud Environment
-        [ValidateSet("Global", "USGov")]
+        [ValidateSet("Global", "USGovHigh")]
         [string]
-        $Environment="Global"
+        $CloudEnvironment="Global"
         )
         process {
             # The equivalent of ..\..
@@ -74,10 +76,10 @@ function Invoke-SCuBA {
             $ProductNames = $ProductNames | Sort-Object
 
             $ConnectionParams = @{
-                'LogIn'        = $LogIn;
-                'ProductNames' = $ProductNames;
-                'Endpoint'     = $Endpoint;
-                'Environment'  = $Environment;
+                'LogIn'            = $LogIn;
+                'ProductNames'     = $ProductNames;
+                'Endpoint'         = $Endpoint;
+                'CloudEnvironment' = $CloudEnvironment;
             }
 
             # If a PowerShell module  is updated, the changes
@@ -89,10 +91,10 @@ function Invoke-SCuBA {
 
             $TenantDetails = Get-TenantDetails -ProductNames $ProductNames
             $ProviderParams = @{
-                'ProductNames'  = $ProductNames;
-                'TenantDetails' = $TenantDetails;
-                'OutFolderPath' = $OutFolderPath;
-                'Environment'   = $Environment;
+                'ProductNames'     = $ProductNames;
+                'TenantDetails'    = $TenantDetails;
+                'OutFolderPath'    = $OutFolderPath;
+                'CloudEnvironment' = $CloudEnvironment;
             }
             $RegoParams = @{
                 'ProductNames'  = $ProductNames;
@@ -146,9 +148,9 @@ function Invoke-ProviderList {
         $OutFolderPath,
 
         #Set the M365 Cloud Environment
-        [ValidateSet("Global", "USGov")]
+        [ValidateSet("Global", "USGovHigh")]
         [string]
-        $Environment="Global"
+        $CloudEnvironment="Global"
     )
     process {
         # yes the syntax has to be like this
@@ -172,16 +174,16 @@ function Invoke-ProviderList {
                     $RetVal = Export-EXOProvider | Select-Object -Last 1
                 }
                 "defender" {
-                    $RetVal = Export-DefenderProvider -Environment $Environment | Select-Object -Last 1
+                    $RetVal = Export-DefenderProvider -CloudEnvironment $CloudEnvironment | Select-Object -Last 1
                 }
                 "powerplatform"{
                     $RetVal = Export-PowerPlatformProvider | Select-Object -Last 1
                 }
                 "onedrive"{
-                    $RetVal = Export-OneDriveProvider -Environment $Environment | Select-Object -Last 1
+                    $RetVal = Export-OneDriveProvider -CloudEnvironment $CloudEnvironment | Select-Object -Last 1
                 }
                 "sharepoint"{
-                    $RetVal = Export-SharePointProvider -Environment $Environment | Select-Object -Last 1
+                    $RetVal = Export-SharePointProvider -CloudEnvironment $CloudEnvironment | Select-Object -Last 1
                 }
                 "teams" {
                     $RetVal = Export-TeamsProvider | Select-Object -Last 1
@@ -361,13 +363,13 @@ function Invoke-ReportCreation {
         Copy-Item -Path $Logo -Destination $IndividualReportPath -Force
 
         $ProdToFullName = @{
-            Teams = "Microsoft Teams";
-            EXO = "Exchange Online";
-            Defender = "Microsoft 365 Defender";
-            AAD = "Azure Active Directory";
+            Teams         = "Microsoft Teams";
+            EXO           = "Exchange Online";
+            Defender      = "Microsoft 365 Defender";
+            AAD           = "Azure Active Directory";
             PowerPlatform = "Microsoft Power Platform";
-            SharePoint = "SharePoint Online";
-            OneDrive = "OneDrive for Business";
+            SharePoint    = "SharePoint Online";
+            OneDrive      = "OneDrive for Business";
         }
 
         foreach ($Product in $ProductNames) {
@@ -505,15 +507,15 @@ function Invoke-Connection {
         $Endpoint,
 
         #Set the M365 Cloud Environment
-        [ValidateSet("Global", "USGov")]
+        [ValidateSet("Global", "USGovHigh")]
         [string]
-        $Environment="Global"
+        $CloudEnvironment="Global"
     )
     if ($LogIn) {
         $ConnectionPath = Join-Path -Path $PSScriptRoot -ChildPath "Connection"
         Remove-Module "Connection" -ErrorAction "SilentlyContinue"
         Import-Module $ConnectionPath
-        Connect-Tenant -ProductNames $ProductNames -Endpoint $Endpoint -Environment $Environment
+        Connect-Tenant -ProductNames $ProductNames -Endpoint $Endpoint -CloudEnvironment $CloudEnvironment
     }
 }
 
@@ -605,9 +607,9 @@ function Invoke-RunCached {
         $OutPath = $PSScriptRoot,
 
         #Cloud environment
-        [ValidateSet("Global", "USGov")]
+        [ValidateSet("Global", "USGovHigh")]
         [string]
-        $Environment="Global"
+        $CloudEnvironment="Global"
         )
         process {
             # The equivalent of ..\..
@@ -619,10 +621,10 @@ function Invoke-RunCached {
 
             # Authenticate
             $ConnectionParams = @{
-                'LogIn' = $LogIn;
-                'ProductNames' = $ProductNames;
-                'Endpoint' = $Endpoint;
-                'Environment' = $Environment;
+                'LogIn'            = $LogIn;
+                'ProductNames'     = $ProductNames;
+                'Endpoint'         = $Endpoint;
+                'CloudEnvironment' = $CloudEnvironment;
             }
 
             #Rego Testing
@@ -630,10 +632,10 @@ function Invoke-RunCached {
             $TenantDetails = $TenantDetails | ConvertTo-Json -Depth 3
 
             $ProviderParams = @{
-                'ProductNames'  = $ProductNames;
-                'TenantDetails' = $TenantDetails;
-                'OutFolderPath' = $OutFolderPath;
-                'Environment'   = $Environment
+                'ProductNames'     = $ProductNames;
+                'TenantDetails'    = $TenantDetails;
+                'OutFolderPath'    = $OutFolderPath;
+                'CloudEnvironment' = $CloudEnvironment
             }
             $RegoParams = @{
                 'ProductNames'  = $ProductNames;

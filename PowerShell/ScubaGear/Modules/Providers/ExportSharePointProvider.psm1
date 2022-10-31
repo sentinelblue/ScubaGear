@@ -1,4 +1,4 @@
-function Export-SharePointProvider($Environment) {
+function Export-SharePointProvider($CloudEnvironment) {
     <#
     .Description
     Gets the SharePoint settings that are relevant
@@ -11,15 +11,15 @@ function Export-SharePointProvider($Environment) {
     $InitialDomainPrefix = $InitialDomain.Name.split(".")[0]
     $SPOTenant = Get-SPOTenant | ConvertTo-Json
 
-    switch ($Environment) {
-        USGov {
+    switch ($CloudEnvironment) {
+        USGovHigh {
             $SPOSite = Get-SPOSite -Identity "https://$($InitialDomainPrefix).sharepoint.us/" -detailed | Select-Object -Property * | ConvertTo-Json
         }
         Global {
             $SPOSite = Get-SPOSite -Identity "https://$($InitialDomainPrefix).sharepoint.com/" -detailed | Select-Object -Property * | ConvertTo-Json
          }
         Default {
-            Write-Error "'$Environment' has no connector for $Product."
+            Write-Error "'$CloudEnvironment' has no connector for $Product."
         }
     }
     
