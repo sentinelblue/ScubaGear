@@ -5,6 +5,13 @@ Developed by CISA, this assessment tool verifies that an M365 tenant’s configu
 > **Warning**
 > This tool is in an alpha state and in active development. At this time, outputs could be incorrect and should be reviewed carefully.
 
+## Known Issue(s)
+
+- The Teams provider produces several errors related to properties  that do not have values in the GCC High environment.
+  - LastSyncTimeTimeStamp
+  - WhenChanged
+  - WhenCreated
+
 ## M365 Product License Assumptions
 
 This tool was tested against tenants that have an E3 or G3 and E5 or G5 M365 license bundle. It may still function for tenants that do not have one of these bundles but it was not specifically tested that way. Also, some of the specific policy checks in the baseline rely on the following specific security licenses which are included by default in E5 and G5. If your tenant does not have the security licenses listed below, the report will display a non-compliant output for those respective policy checks.
