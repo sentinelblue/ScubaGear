@@ -13,7 +13,7 @@ $ProductNames = @("aad", "defender", "exo", "onedrive", "sharepoint", "teams") #
 $Endpoint     = "usgov" # Mandatory parameter if running Power Platform. Valid options are "dod", "prod", "preview", "tip1", "tip2", "usgov", or "usgovhigh".
 $OutPath      = "./Reports" # Report output directory path. Leave as-is if you want the Reports folder to be created in the same directory where the script is executed.
 $OPAPath      = "./" # Path to the OPA Executable. Leave this as-is for most cases.
-$Environment  = "USGov" # Set the M365 Cloud Environment. Options are "Global" or "USGov".
+$Environment  = "USGov" # Set the M365 Cloud Environment. Options are "Global" or "USGov". "Global" is the default if not specified.
 
 $SCuBAParams = @{
     'Login'        = $Login;
